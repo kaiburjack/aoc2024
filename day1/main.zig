@@ -27,7 +27,7 @@ pub fn main() !void {
     const allocator = arena.allocator();
     const file = try std.fs.cwd().openFile("input.txt", .{});
     const file_size = (try file.stat()).size;
-    const input = try file.readToEndAlloc(allocator, file_size);
+    const input = try file.readToEndAllocOptions(allocator, file_size, file_size, 8, null);
     file.close();
     var lines = std.mem.tokenizeScalar(u8, input, '\n');
     var left_ints = std.ArrayList(i64).init(allocator);
