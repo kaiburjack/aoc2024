@@ -6,6 +6,8 @@ const Direction = enum {
     Decrease,
 };
 
+const MAX_DIFFERENCE = 3;
+
 fn is_safe(numbers : []const i64, ignore : ?usize) bool {
     var increaseOrDecrease : Direction = .Undefined;
     var last : i64 = 0;
@@ -19,21 +21,22 @@ fn is_safe(numbers : []const i64, ignore : ?usize) bool {
             continue;
         }
         const number = numbers[i];
-        if (increaseOrDecrease == .Undefined) {
-            if (number > last) {
-                increaseOrDecrease = .Increase;
-            } else if (number < last) {
-                increaseOrDecrease = .Decrease;
-            } else {
+        switch (increaseOrDecrease) {
+            .Undefined => {
+                if (number > last and @abs(last-number) <= MAX_DIFFERENCE) {
+                    increaseOrDecrease = .Increase;
+                } else if (number < last and @abs(last-number) <= MAX_DIFFERENCE) {
+                    increaseOrDecrease = .Decrease;
+                } else {
+                    return false;
+                }
+            },
+            .Increase => if (number <= last or @abs(last-number) > MAX_DIFFERENCE) {
                 return false;
-            }
-        } else if (increaseOrDecrease == .Increase and number <= last) {
-            return false;
-        } else if (increaseOrDecrease == .Decrease and number >= last) {
-            return false;
-        }
-        if (@abs(last-number) == 0 or @abs(last-number) > 3) {
-            return false;
+            },
+            .Decrease => if (number >= last or @abs(last-number) > MAX_DIFFERENCE) {
+                return false;
+            },
         }
         last = number;
     }
