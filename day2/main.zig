@@ -6,31 +6,33 @@ const Direction = enum {
     Decrease,
 };
 
-fn part1(numbers : []const i64, ignore : ?usize) bool {
+fn is_safe(numbers : []const i64, ignore : ?usize) bool {
     var increaseOrDecrease : Direction = .Undefined;
-    var last : ?i64 = null;
+    var last : i64 = 0;
+    var has_last = false;
     for (0..numbers.len) |i| {
         if (i == ignore) {
             continue;
-        } else if (last == null) {
+        } else if (!has_last) {
             last = numbers[i];
+            has_last = true;
             continue;
         }
         const number = numbers[i];
         if (increaseOrDecrease == .Undefined) {
-            if (number > last.?) {
+            if (number > last) {
                 increaseOrDecrease = .Increase;
-            } else if (number < last.?) {
+            } else if (number < last) {
                 increaseOrDecrease = .Decrease;
             } else {
                 return false;
             }
-        } else if (increaseOrDecrease == .Increase and number <= last.?) {
+        } else if (increaseOrDecrease == .Increase and number <= last) {
             return false;
-        } else if (increaseOrDecrease == .Decrease and number >= last.?) {
+        } else if (increaseOrDecrease == .Decrease and number >= last) {
             return false;
         }
-        if (@abs(last.?-number) == 0 or @abs(last.?-number) > 3) {
+        if (@abs(last-number) == 0 or @abs(last-number) > 3) {
             return false;
         }
         last = number;
@@ -38,9 +40,9 @@ fn part1(numbers : []const i64, ignore : ?usize) bool {
     return true;
 }
 
-fn part2(numbers : []const i64) bool {
+fn is_safe_dampened(numbers : []const i64) bool {
     for (0..numbers.len) |i| {
-        if (part1(numbers, i)) {
+        if (is_safe(numbers, i)) {
             return true;
         }
     }
@@ -63,15 +65,10 @@ pub fn main() !void {
         var splitted = std.mem.tokenizeScalar(u8, line, ' ');
         try numbers.resize(0);
         while (splitted.next()) |number| {
-            const parser = try std.fmt.parseInt(i64, number, 10);
-            try numbers.append(parser);
+            try numbers.append(try std.fmt.parseInt(i64, number, 10));
         }
-        if (part1(numbers.items, null)) {
-            safe_lines += 1;
-        }
-        if (part2(numbers.items)) {
-            safe_lines_with_dampener += 1;
-        }
+        safe_lines += if (is_safe(numbers.items, null)) 1 else 0;
+        safe_lines_with_dampener += if (is_safe_dampened(numbers.items)) 1 else 0;
     }
     std.debug.print("{}\n", .{safe_lines});
     std.debug.print("{}\n", .{safe_lines_with_dampener});
