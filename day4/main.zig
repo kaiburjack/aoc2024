@@ -1,14 +1,5 @@
 const std = @import("std");
 
-const Direction = enum {
-    Undefined,
-    Increase,
-    Decrease,
-};
-
-const XMAS = "XMAS";
-const MAS = "MAS";
-
 fn find(pattern: []const u8, field: [][]const u8, row : i32, col : i32, dr : i8, dc: i8) bool {
     var j : usize = 0;
     var c : i32 = col;
@@ -20,6 +11,54 @@ fn find(pattern: []const u8, field: [][]const u8, row : i32, col : i32, dr : i8,
         j += 1;
     }
     return j == pattern.len;
+}
+
+fn part1(field: [][]const u8) void {
+    var count : u64 = 0;
+    for (0..field.len) |row| {
+        for (0..field[row].len) |col| {
+            if (field[row][col] != 'X') {
+                continue;
+            }
+            var dr : i8 = -1;
+            while (dr <= 1) : (dr += 1) {
+                var dc : i8 = -1;
+                while (dc <= 1) : (dc += 1) {
+                    if (dr == 0 and dc == 0) {
+                        continue;
+                    }
+                    if (find("XMAS", field, @intCast(row), @intCast(col), dr, dc)) {
+                        count += 1;
+                    }
+                }
+            }
+        }
+    }
+    std.debug.print("{}\n", .{count});
+}
+
+fn part2(field: [][]const u8) void {
+    var count: u64 = 0;
+    var row : i32 = 0;
+    while (row < field.len) : (row += 1) {
+        var col : i32 = 0;
+        while (col < field[@intCast(row)].len) : (col += 1) {
+            if (field[@intCast(row)][@intCast(col)] != 'A') {
+                continue;
+            }
+            if (find("MAS", field, row-1, col-1, 1, 1) and
+                find("MAS", field, row+1, col-1, -1, 1) or
+                find("MAS", field, row+1, col-1, -1, 1) and
+                    find("MAS", field, row+1, col+1, -1, -1) or
+                find("MAS", field, row-1, col-1, 1, 1) and
+                    find("MAS", field, row-1, col+1, 1,-1) or
+                find("MAS", field, row-1, col+1, 1, -1) and
+                    find("MAS", field, row+1, col+1, -1, -1)) {
+                count += 1;
+            }
+        }
+    }
+    std.debug.print("{}\n", .{count});
 }
 
 pub fn main() !void {
@@ -35,49 +74,7 @@ pub fn main() !void {
     while (lines_iterator.next()) |line| {
         try lines.append(line);
     }
-    var count : u64 = 0;
-    // part 1
-    for (0..lines.items.len) |row| {
-        for (0..lines.items[row].len) |col| {
-            if (lines.items[row][col] != 'X') {
-                continue;
-            }
-            var dr : i8 = -1;
-            while (dr <= 1) : (dr += 1) {
-                var dc : i8 = -1;
-                while (dc <= 1) : (dc += 1) {
-                    if (dr == 0 and dc == 0) {
-                        continue;
-                    }
-                    if (find(XMAS, lines.items, @intCast(row), @intCast(col), dr, dc)) {
-                        count += 1;
-                    }
-                }
-            }
-        }
-    }
-    std.debug.print("Count: {}\n", .{count});
 
-    // part 2
-    count = 0;
-    var row : i32 = 0;
-    while (row < lines.items.len) : (row += 1) {
-        var col : i32 = 0;
-        while (col < lines.items[@intCast(row)].len) : (col += 1) {
-            if (lines.items[@intCast(row)][@intCast(col)] != 'A') {
-                continue;
-            }
-            if (find(MAS, lines.items, row-1, col-1, 1, 1) and
-                find(MAS, lines.items, row+1, col-1, -1, 1) or
-                find(MAS, lines.items, row+1, col-1, -1, 1) and
-                find(MAS, lines.items, row+1, col+1, -1, -1) or
-                find(MAS, lines.items, row-1, col-1, 1, 1) and
-                find(MAS, lines.items, row-1, col+1, 1,-1) or
-                find(MAS, lines.items, row-1, col+1, 1, -1) and
-                find(MAS, lines.items, row+1, col+1, -1, -1)) {
-                count += 1;
-            }
-        }
-    }
-    std.debug.print("Count: {}\n", .{count});
+    part1(lines.items);
+    part2(lines.items);
 }
