@@ -11,52 +11,45 @@ import (
 func main() {
 	file, _ := os.Open("real.txt")
 	scanner := bufio.NewScanner(file)
-	before := make(map[int][]int)
+	before := make(map[string][]string)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "" {
 			break
 		}
 		parts := strings.Split(line, "|")
-		firstInt, _ := strconv.Atoi(parts[0])
-		secondInt, _ := strconv.Atoi(parts[1])
-		if _, ok := before[firstInt]; ok {
-			before[firstInt] = append(before[firstInt], secondInt)
+		if v, ok := before[parts[0]]; ok {
+			before[parts[0]] = append(v, parts[1])
 		} else {
-			before[firstInt] = []int{secondInt}
+			before[parts[0]] = []string{parts[1]}
 		}
 	}
 
 	sumOfMiddlesPart1 := 0
 	sumOfMiddlesPart2 := 0
 	for scanner.Scan() {
-		numbers := make([]int, 0)
+		numbers := make([]string, 0)
 		splitted := strings.Split(scanner.Text(), ",")
 		for i := 0; i < len(splitted); i++ {
-			number, _ := strconv.Atoi(splitted[i])
-			numbers = append(numbers, number)
+			numbers = append(numbers, splitted[i])
 		}
-		numbersCopy := make([]int, len(numbers))
+		numbersCopy := make([]string, len(numbers))
 		copy(numbersCopy, numbers)
-		slices.SortStableFunc(numbers, func(a, b int) int {
-			if oa, ok := before[a]; ok {
-				if slices.Contains(oa, b) {
-					return -1
-				}
-			}
-			if ob, ok := before[b]; ok {
-				if slices.Contains(ob, a) {
-					return 1
-				}
+		slices.SortStableFunc(numbers, func(a, b string) int {
+			if oa, ok := before[a]; ok && slices.Contains(oa, b) {
+				return -1
+			} else if ob, ok := before[b]; ok && slices.Contains(ob, a) {
+				return 1
 			}
 			return 0
 		})
 
 		middle := len(numbers) / 2
+		middleAsInt, _ := strconv.Atoi(numbers[middle])
 		if slices.Equal(numbers, numbersCopy) {
-			sumOfMiddlesPart1 += numbers[middle]
+			sumOfMiddlesPart1 += middleAsInt
 		} else {
-			sumOfMiddlesPart2 += numbers[middle]
+			sumOfMiddlesPart2 += middleAsInt
 		}
 	}
 	println(sumOfMiddlesPart1)
