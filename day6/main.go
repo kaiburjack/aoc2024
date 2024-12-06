@@ -8,7 +8,7 @@ import (
 )
 
 func part2(m [][]byte, sx int, gx int, gy int, allVisited [][]int) {
-	v := make([]int, len(m)*sx)
+	v := make([]int8, len(m)*sx)
 	numPossibleObstacles := 0
 	for _, p := range allVisited {
 		ox, oy := p[0], p[1]
@@ -24,8 +24,8 @@ func part2(m [][]byte, sx int, gx int, gy int, allVisited [][]int) {
 			}
 			x, y = x+dx, y+dy
 			if v[y*sx+x] == 0 {
-				v[y*sx+x] = (dx+1)<<2 + (dy + 1)
-			} else if v[y*sx+x] == (dx+1)<<2+(dy+1) {
+				v[y*sx+x] = int8((dx+1)<<2 + (dy + 1))
+			} else if v[y*sx+x] == int8((dx+1)<<2+(dy+1)) {
 				numPossibleObstacles++
 				break
 			}
