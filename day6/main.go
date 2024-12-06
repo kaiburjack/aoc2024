@@ -16,7 +16,6 @@ func part2(m [][]byte, sx int, gx int, gy int, allVisited [][]int) {
 			continue
 		}
 		m[oy][ox] = '#'
-		loopDetected := false
 		for i := 0; i < len(v); i++ {
 			v[i] = 0
 		}
@@ -34,12 +33,9 @@ func part2(m [][]byte, sx int, gx int, gy int, allVisited [][]int) {
 			if v[y*sx+x] == 0 {
 				v[y*sx+x] = (dx+1)<<2 + (dy + 1)
 			} else if v[y*sx+x] == (dx+1)<<2+(dy+1) {
-				loopDetected = true
+				numPossibleObstacles++
 				break
 			}
-		}
-		if loopDetected {
-			numPossibleObstacles++
 		}
 		m[oy][ox] = '.'
 	}
