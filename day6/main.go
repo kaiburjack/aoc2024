@@ -56,15 +56,13 @@ func part1(m [][]byte, sx int, gx int, gy int) [][]int {
 		v[y*sx+x] = true
 		x, y = x+dx, y+dy
 	}
-	numVisited := 0
 	allVisited := make([][]int, 0)
 	for i := 0; i < len(v); i++ {
 		if v[i] {
-			numVisited++
 			allVisited = append(allVisited, []int{i % sx, i / sx})
 		}
 	}
-	println(numVisited)
+	println(len(allVisited))
 	return allVisited
 }
 
