@@ -36,8 +36,7 @@ func part2(m [][]byte, sx int, gx int, gy int, allVisited [][]int) {
 }
 
 func part1(m [][]byte, sx int, gx int, gy int) [][]int {
-	x, y := gx, gy
-	dx, dy := 0, -1
+	x, y, dx, dy := gx, gy, 0, -1
 	v := make([]bool, len(m)*sx)
 	for y+dy >= 0 && y+dy < len(m) && x+dx >= 0 && x+dx < sx {
 		if m[y+dy][x+dx] == '#' {
