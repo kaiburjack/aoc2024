@@ -12,9 +12,6 @@ func part2(m [][]byte, sx int, gx int, gy int, allVisited [][]int) {
 	numPossibleObstacles := 0
 	for _, p := range allVisited {
 		ox, oy := p[0], p[1]
-		if ox == gx && oy == gy || m[oy][ox] == '#' {
-			continue
-		}
 		m[oy][ox] = '#'
 		for i := 0; i < len(v); i++ {
 			v[i] = 0
