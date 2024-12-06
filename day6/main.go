@@ -19,17 +19,16 @@ func part2(m [][]byte, sx int, gx int, gy int, allVisited [][]int) {
 		for i := 0; i < len(v); i++ {
 			v[i] = 0
 		}
-		x, y := gx, gy
-		dx, dy := 0, -1
+		x, y, dx, dy := gx, gy, 0, -1
 		for {
-			if y+dy >= 0 && y+dy < len(m) && x+dx >= 0 && x+dx < sx && m[y+dy][x+dx] == '#' {
+			if y+dy < 0 || y+dy >= len(m) || x+dx < 0 || x+dx >= sx {
+				break
+			}
+			if m[y+dy][x+dx] == '#' {
 				dx, dy = -dy, dx
 				continue
 			}
 			x, y = x+dx, y+dy
-			if y < 0 || y >= len(m) || x < 0 || x >= sx {
-				break
-			}
 			if v[y*sx+x] == 0 {
 				v[y*sx+x] = (dx+1)<<2 + (dy + 1)
 			} else if v[y*sx+x] == (dx+1)<<2+(dy+1) {
@@ -47,15 +46,15 @@ func part1(m [][]byte, sx int, gx int, gy int) [][]int {
 	dx, dy := 0, -1
 	v := make([]bool, len(m)*sx)
 	for {
-		if y+dy >= 0 && y+dy < len(m) && x+dx >= 0 && x+dx < sx && m[y+dy][x+dx] == '#' {
+		if y+dy < 0 || y+dy >= len(m) || x+dx < 0 || x+dx >= sx {
+			break
+		}
+		if m[y+dy][x+dx] == '#' {
 			dx, dy = -dy, dx
 			continue
 		}
 		v[y*sx+x] = true
 		x, y = x+dx, y+dy
-		if y < 0 || y >= len(m) || x < 0 || x >= sx {
-			break
-		}
 	}
 	numVisited := 0
 	allVisited := make([][]int, 0)
