@@ -30,24 +30,16 @@ func calculate(numbers []number, operators []byte) int64 {
 	return result
 }
 
-func powInt(base int64, exp int) int64 {
-	var result int64 = 1
-	for i := 0; i < exp; i++ {
-		result *= base
-	}
-	return result
-}
-
-func findValidCombination(alphabet string, numbers []number, desiredResult int64) int64 {
-	operators := make([]byte, len(numbers)-1)
-	n := int64(len(alphabet))
-	np := powInt(n, len(numbers)-1)
-	for i := int64(0); i < np; i++ {
-		for j, den := 0, int64(1); j < len(operators); j, den = j+1, den*n {
-			operators[j] = alphabet[(i / den % n)]
+func findValidCombinationRec(alphabet string, numbers []number, desiredResult int64, operators []byte, index int) int64 {
+	if index == len(operators) {
+		if calculate(numbers, operators) == desiredResult {
+			return desiredResult
 		}
-		result := calculate(numbers, operators)
-		if result == desiredResult {
+		return 0
+	}
+	for i := 0; i < len(alphabet); i++ {
+		operators[index] = alphabet[i]
+		if findValidCombinationRec(alphabet, numbers, desiredResult, operators, index+1) == desiredResult {
 			return desiredResult
 		}
 	}
@@ -67,8 +59,9 @@ func main() {
 			num, _ := strconv.ParseInt(n, 10, 64)
 			numbers = append(numbers, number{num, len(n)})
 		}
-		sumPart1 += findValidCombination("+*", numbers, leftAsInt)
-		sumPart2 += findValidCombination("+*|", numbers, leftAsInt)
+		operators := make([]byte, len(numbers)-1)
+		sumPart1 += findValidCombinationRec("+*", numbers, leftAsInt, operators, 0)
+		sumPart2 += findValidCombinationRec("+*|", numbers, leftAsInt, operators, 0)
 	}
 	time2 := time.Now()
 	println(sumPart1)
