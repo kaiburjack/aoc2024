@@ -15,32 +15,33 @@ type number struct {
 	len   int
 }
 
-func calculate(numbers []number, operators []byte) int64 {
-	result := numbers[0].value
-	for i := 0; i < len(operators); i++ {
-		switch operators[i] {
-		case '+':
-			result += numbers[i+1].value
-		case '*':
-			result *= numbers[i+1].value
-		case '|':
-			result = result*int64(math.Pow10(numbers[i+1].len)) + numbers[i+1].value
-		}
+func calculateOne(acc, v int64, vlen int, operator byte) int64 {
+	switch operator {
+	case '+':
+		return acc + v
+	case '*':
+		return acc * v
+	case '|':
+		return acc*int64(math.Pow10(vlen)) + v
 	}
-	return result
+	return 0
 }
 
-func findValidCombinationRec(alphabet string, numbers []number, desiredResult int64, operators []byte, index int) int64 {
+func findValidCombinationRec(alphabet string, numbers []number, desiredResult int64, operators []byte, index int, acc int64) int64 {
 	if index == len(operators) {
-		if calculate(numbers, operators) == desiredResult {
+		if acc == desiredResult {
 			return desiredResult
 		}
 		return 0
 	}
 	for i := 0; i < len(alphabet); i++ {
 		operators[index] = alphabet[i]
-		if findValidCombinationRec(alphabet, numbers, desiredResult, operators, index+1) == desiredResult {
-			return desiredResult
+		newAcc := calculateOne(acc, numbers[index+1].value, numbers[index+1].len, operators[index])
+		if newAcc > desiredResult {
+			continue
+		}
+		if result := findValidCombinationRec(alphabet, numbers, desiredResult, operators, index+1, newAcc); result == desiredResult {
+			return result
 		}
 	}
 	return 0
@@ -60,8 +61,8 @@ func main() {
 			numbers = append(numbers, number{num, len(n)})
 		}
 		operators := make([]byte, len(numbers)-1)
-		sumPart1 += findValidCombinationRec("+*", numbers, leftAsInt, operators, 0)
-		sumPart2 += findValidCombinationRec("+*|", numbers, leftAsInt, operators, 0)
+		sumPart1 += findValidCombinationRec("+*", numbers, leftAsInt, operators, 0, numbers[0].value)
+		sumPart2 += findValidCombinationRec("+*|", numbers, leftAsInt, operators, 0, numbers[0].value)
 	}
 	time2 := time.Now()
 	println(sumPart1)
