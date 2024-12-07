@@ -15,32 +15,25 @@ type number struct {
 	len   int
 }
 
-func calculateOne(acc, v int64, vlen int, operator byte) int64 {
-	switch operator {
-	case '+':
-		return acc + v
-	case '*':
-		return acc * v
-	case '|':
-		return acc*int64(math.Pow10(vlen)) + v
-	}
-	return 0
-}
-
 func findValidCombinationRec(alphabet string, numbers []number, desiredResult int64, operators []byte, index int, acc int64) int64 {
 	if index == len(operators) {
-		if acc == desiredResult {
-			return desiredResult
-		}
-		return 0
+		return acc
 	}
 	for i := 0; i < len(alphabet); i++ {
 		operators[index] = alphabet[i]
-		newAcc := calculateOne(acc, numbers[index+1].value, numbers[index+1].len, operators[index])
-		if newAcc > desiredResult {
+		var res int64
+		switch operators[index] {
+		case '+':
+			res = acc + numbers[index+1].value
+		case '*':
+			res = acc * numbers[index+1].value
+		case '|':
+			res = acc*int64(math.Pow10(numbers[index+1].len)) + numbers[index+1].value
+		}
+		if res > desiredResult {
 			continue
 		}
-		if result := findValidCombinationRec(alphabet, numbers, desiredResult, operators, index+1, newAcc); result == desiredResult {
+		if result := findValidCombinationRec(alphabet, numbers, desiredResult, operators, index+1, res); result == desiredResult {
 			return result
 		}
 	}
