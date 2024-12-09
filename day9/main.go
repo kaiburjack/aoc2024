@@ -8,9 +8,9 @@ import (
 )
 
 type sectorList struct {
-	first *node
-	last  *node
-	size  int
+	first    *node
+	last     *node
+	nextFree *node
 }
 
 type node struct {
@@ -72,18 +72,23 @@ func (thiz *sectorList) buildFromBytes(bytes []byte, fullFiles bool) {
 }
 
 func (thiz *sectorList) append(n *node) {
+	if thiz.nextFree == nil && n.id == -1 {
+		thiz.nextFree = n
+	}
 	if thiz.first == nil {
 		thiz.first = n
 		thiz.last = n
+		if n.id == -1 {
+			thiz.nextFree = n
+		}
 	} else {
 		thiz.last.append(n)
 		thiz.last = n
 	}
-	thiz.size += n.len
 }
 
 func (thiz *sectorList) findFreeSpace(size int, until int) *node {
-	for n := thiz.first; n != nil && n.idx < until; n = n.next {
+	for n := thiz.nextFree; n != nil && n.idx < until; n = n.next {
 		if n.id == -1 && n.len >= size {
 			return n
 		}
@@ -95,6 +100,7 @@ func (thiz *sectorList) move(dst *node, src *node) {
 	if dst.len == src.len {
 		dst.id = src.id
 		src.id = -1
+		thiz.nextFree = thiz.findFreeSpace(1, src.idx)
 	} else if dst.len > src.len {
 		// create new node with remaining space
 		newNode := &node{id: dst.id, len: dst.len - src.len}
