@@ -82,8 +82,8 @@ func (thiz *sectorList) append(n *node) {
 	thiz.size += n.len
 }
 
-func (thiz *sectorList) findFreeSpace(size int) *node {
-	for n := thiz.first; n != nil; n = n.next {
+func (thiz *sectorList) findFreeSpace(size int, until int) *node {
+	for n := thiz.first; n != nil && n.idx < until; n = n.next {
 		if n.id == -1 && n.len >= size {
 			return n
 		}
@@ -112,7 +112,7 @@ func (thiz *sectorList) compact() {
 		if n.id == -1 {
 			continue
 		}
-		free := thiz.findFreeSpace(n.len)
+		free := thiz.findFreeSpace(n.len, n.idx)
 		if free != nil {
 			if free.idx > n.idx {
 				continue
