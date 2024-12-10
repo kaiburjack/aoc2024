@@ -5,23 +5,23 @@ import (
 	"os"
 )
 
-func walk(p [2]int, v byte, grid [][]byte, reachable map[[2]int]struct{}) int {
+func walk(x, y int, v byte, grid [][]byte, reachable map[[2]int]struct{}) int {
 	distinct := 0
 	if v == '9' {
-		reachable[p] = struct{}{}
+		reachable[[2]int{x, y}] = struct{}{}
 		return 1
 	}
-	if p[0] > 0 && grid[p[1]][p[0]-1] == v+1 {
-		distinct += walk([2]int{p[0] - 1, p[1]}, v+1, grid, reachable)
+	if x > 0 && grid[y][x-1] == v+1 {
+		distinct += walk(x-1, y, v+1, grid, reachable)
 	}
-	if p[0] < len(grid[0])-1 && grid[p[1]][p[0]+1] == v+1 {
-		distinct += walk([2]int{p[0] + 1, p[1]}, v+1, grid, reachable)
+	if x < len(grid[0])-1 && grid[y][x+1] == v+1 {
+		distinct += walk(x+1, y, v+1, grid, reachable)
 	}
-	if p[1] > 0 && grid[p[1]-1][p[0]] == v+1 {
-		distinct += walk([2]int{p[0], p[1] - 1}, v+1, grid, reachable)
+	if y > 0 && grid[y-1][x] == v+1 {
+		distinct += walk(x, y-1, v+1, grid, reachable)
 	}
-	if p[1] < len(grid)-1 && grid[p[1]+1][p[0]] == v+1 {
-		distinct += walk([2]int{p[0], p[1] + 1}, v+1, grid, reachable)
+	if y < len(grid)-1 && grid[y+1][x] == v+1 {
+		distinct += walk(x, y+1, v+1, grid, reachable)
 	}
 	return distinct
 }
@@ -43,9 +43,9 @@ func main() {
 	}
 
 	sumPart2, sumPart1 := 0, 0
-	for sp := range startingPoints {
+	for _, sp := range startingPoints {
 		reachable := make(map[[2]int]struct{})
-		sumPart2 += walk(startingPoints[sp], '0', grid, reachable)
+		sumPart2 += walk(sp[0], sp[1], '0', grid, reachable)
 		sumPart1 += len(reachable)
 	}
 
