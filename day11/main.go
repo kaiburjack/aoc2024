@@ -53,6 +53,20 @@ var digitCountToNumEven = [19]uint64{
 func numDigitsBase10(n uint64) uint64 {
 	if n < 10 {
 		return 1
+	} else if n < 100 {
+		return 2
+	} else if n < 1000 {
+		return 3
+	} else if n < 10000 {
+		return 4
+	} else if n < 100000 {
+		return 5
+	} else if n < 1000000 {
+		return 6
+	} else if n < 10000000 {
+		return 7
+	} else if n < 100000000 {
+		return 8
 	}
 	for _, pair := range numToDigitCount {
 		if n >= pair[0] {
@@ -67,32 +81,35 @@ func divide(n uint64, numDigits uint64) (uint64, uint64) {
 	return n / u, n % u
 }
 
-func simulateOneStoneNSteps(stone uint64, n uint64) uint64 {
+func SimulateOneStoneNSteps(stone uint64, n uint64) uint64 {
 	if n == 0 {
 		return 1
 	}
 	numDigits := numDigitsBase10(stone)
 	if stone == 0 {
-		return simulateOneStoneNSteps(1, n-1)
+		return SimulateOneStoneNSteps(1, n-1)
 	} else if numDigits&1 == 0 {
 		stone0, stone1 := divide(stone, numDigits)
-		return simulateOneStoneNSteps(stone0, n-1) + simulateOneStoneNSteps(stone1, n-1)
+		return SimulateOneStoneNSteps(stone0, n-1) + SimulateOneStoneNSteps(stone1, n-1)
 	} else {
-		return simulateOneStoneNSteps(stone*2024, n-1)
+		return SimulateOneStoneNSteps(stone*2024, n-1)
 	}
 }
 
 func main() {
 	bytes, _ := os.ReadFile("real.txt")
 	numbers := strings.Fields(string(bytes))
+	stones := make([]uint64, len(numbers))
+	for i, number := range numbers {
+		n, _ := strconv.ParseUint(number, 10, 64)
+		stones[i] = n
+	}
 	// Part 1
 	{
 		totalStones := uint64(0)
 		time1 := time.Now()
-		for _, number := range numbers {
-			n, _ := strconv.ParseUint(number, 10, 64)
-			numStones := simulateOneStoneNSteps(n, 25)
-			totalStones += numStones
+		for _, stone := range stones {
+			totalStones += SimulateOneStoneNSteps(stone, 25)
 		}
 		time2 := time.Now()
 		fmt.Print("Part1:\n")
