@@ -87,20 +87,20 @@ func SimulateOneStoneNSteps(stone uint64, n uint64, cache map[[2]uint64]uint64) 
 	} else if n == 0 {
 		return 1
 	}
-	numDigits := numDigitsBase10(stone)
 	if stone == 0 {
 		count := SimulateOneStoneNSteps(1, n-1, cache)
-		cache[[2]uint64{stone, n}] = count
-		return count
-	} else if numDigits&1 == 0 {
-		stone0, stone1 := divide(stone, numDigits)
-		count := SimulateOneStoneNSteps(stone0, n-1, cache) + SimulateOneStoneNSteps(stone1, n-1, cache)
-		cache[[2]uint64{stone, n}] = count
 		return count
 	} else {
-		count := SimulateOneStoneNSteps(stone*2024, n-1, cache)
-		cache[[2]uint64{stone, n}] = count
-		return count
+		numDigits := numDigitsBase10(stone)
+		if numDigits&1 == 0 {
+			stone0, stone1 := divide(stone, numDigits)
+			count := SimulateOneStoneNSteps(stone0, n-1, cache) + SimulateOneStoneNSteps(stone1, n-1, cache)
+			cache[[2]uint64{stone, n}] = count
+			return count
+		} else {
+			count := SimulateOneStoneNSteps(stone*2024, n-1, cache)
+			return count
+		}
 	}
 }
 
