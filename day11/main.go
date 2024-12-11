@@ -81,18 +81,26 @@ func divide(n uint64, numDigits uint64) (uint64, uint64) {
 	return n / u, n % u
 }
 
-func SimulateOneStoneNSteps(stone uint64, n uint64) uint64 {
-	if n == 0 {
+func SimulateOneStoneNSteps(stone uint64, n uint64, cache map[[2]uint64]uint64) uint64 {
+	if v, ok := cache[[2]uint64{stone, n}]; ok {
+		return v
+	} else if n == 0 {
 		return 1
 	}
 	numDigits := numDigitsBase10(stone)
 	if stone == 0 {
-		return SimulateOneStoneNSteps(1, n-1)
+		count := SimulateOneStoneNSteps(1, n-1, cache)
+		cache[[2]uint64{stone, n}] = count
+		return count
 	} else if numDigits&1 == 0 {
 		stone0, stone1 := divide(stone, numDigits)
-		return SimulateOneStoneNSteps(stone0, n-1) + SimulateOneStoneNSteps(stone1, n-1)
+		count := SimulateOneStoneNSteps(stone0, n-1, cache) + SimulateOneStoneNSteps(stone1, n-1, cache)
+		cache[[2]uint64{stone, n}] = count
+		return count
 	} else {
-		return SimulateOneStoneNSteps(stone*2024, n-1)
+		count := SimulateOneStoneNSteps(stone*2024, n-1, cache)
+		cache[[2]uint64{stone, n}] = count
+		return count
 	}
 }
 
@@ -104,15 +112,28 @@ func main() {
 		n, _ := strconv.ParseUint(number, 10, 64)
 		stones[i] = n
 	}
+	cache := make(map[[2]uint64]uint64)
 	// Part 1
 	{
 		totalStones := uint64(0)
 		time1 := time.Now()
 		for _, stone := range stones {
-			totalStones += SimulateOneStoneNSteps(stone, 25)
+			totalStones += SimulateOneStoneNSteps(stone, 25, cache)
 		}
 		time2 := time.Now()
 		fmt.Print("Part1:\n")
+		fmt.Printf("  Total stones: %d\n", totalStones)
+		fmt.Printf("  Time: %v\n", time2.Sub(time1))
+	}
+	// Part 2
+	{
+		totalStones := uint64(0)
+		time1 := time.Now()
+		for _, stone := range stones {
+			totalStones += SimulateOneStoneNSteps(stone, 75, cache)
+		}
+		time2 := time.Now()
+		fmt.Print("Part2:\n")
 		fmt.Printf("  Total stones: %d\n", totalStones)
 		fmt.Printf("  Time: %v\n", time2.Sub(time1))
 	}
