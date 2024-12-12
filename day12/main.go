@@ -13,32 +13,32 @@ type edge struct {
 	x, y, d int
 }
 
-func areaPerimeterAndNumberEdges(x, y int, v byte, field [][]byte, seen map[[2]int]struct{}) (area int64, perimeter int64, nedges int64) {
-	q := [][2]int{{x, y}}
-	seen[[2]int{x, y}] = struct{}{}
+type point struct {
+	x, y int
+}
+
+func areaPerimeterAndNumberEdges(x, y int, v byte, field [][]byte, seen map[point]struct{}) (area int64, perimeter int64, nedges int64) {
+	seen[point{x, y}] = struct{}{}
 	var edges []edge
-	for ; len(q) > 0; area++ {
-		x, y := q[len(q)-1][0], q[len(q)-1][1]
+	for q := []point{{x, y}}; len(q) > 0; area++ {
+		p := q[len(q)-1]
 		q = q[:len(q)-1]
-		for di, d := range [][2]int{{0, 1}, {0, -1}, {1, 0}, {-1, 0}} {
-			nx, ny := x+d[0], y+d[1]
+		for di, d := range []point{{0, 1}, {0, -1}, {1, 0}, {-1, 0}} {
+			nx, ny := p.x+d.x, p.y+d.y
 			if nx < 0 || ny < 0 || ny >= len(field) || nx >= len(field[ny]) || field[ny][nx] != v {
 				perimeter++
-				edges = append(edges, edge{x, y, di})
-			} else if _, ok := seen[[2]int{nx, ny}]; !ok {
-				seen[[2]int{nx, ny}] = struct{}{}
-				q = append(q, [2]int{nx, ny})
+				edges = append(edges, edge{p.x, p.y, di})
+			} else if _, ok := seen[point{nx, ny}]; !ok {
+				seen[point{nx, ny}] = struct{}{}
+				q = append(q, point{nx, ny})
 			}
 		}
 	}
 	slices.SortFunc(edges, func(a, b edge) int {
-		if a.d != b.d {
-			return a.d - b.d
-		}
 		if a.d == 2 || a.d == 3 {
-			return cmp.Or(cmp.Compare(a.x, b.x), cmp.Compare(a.y, b.y))
+			return cmp.Or(cmp.Compare(a.d, b.d), cmp.Compare(a.x, b.x), cmp.Compare(a.y, b.y))
 		} else if a.d == 0 || a.d == 1 {
-			return cmp.Or(cmp.Compare(a.y, b.y), cmp.Compare(a.x, b.x))
+			return cmp.Or(cmp.Compare(a.d, b.d), cmp.Compare(a.y, b.y), cmp.Compare(a.x, b.x))
 		}
 		return 0
 	})
@@ -57,17 +57,16 @@ func areaPerimeterAndNumberEdges(x, y int, v byte, field [][]byte, seen map[[2]i
 func main() {
 	b, _ := os.ReadFile("real.txt")
 	lines := bytes.Split(b, []byte("\n"))
-	seen := make(map[[2]int]struct{})
+	seen := make(map[point]struct{})
 	totalPrice1, totalPrice2 := int64(0), int64(0)
 	time1 := time.Now()
 	for y := 0; y < len(lines); y++ {
 		for x := 0; x < len(lines[y]); x++ {
-			if _, ok := seen[[2]int{x, y}]; ok {
+			if _, ok := seen[point{x, y}]; ok {
 				continue
 			}
 			area, perimeter, edges := areaPerimeterAndNumberEdges(x, y, lines[y][x], lines, seen)
-			totalPrice1 += area * perimeter
-			totalPrice2 += area * edges
+			totalPrice1, totalPrice2 = totalPrice1+area*perimeter, totalPrice2+area*edges
 		}
 	}
 	time2 := time.Now()
