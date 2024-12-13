@@ -11,10 +11,9 @@ import (
 func solve2x2(a00, a01, a10, a11, b0, b1 uint64) (*big.Rat, *big.Rat) {
 	r := func(i uint64) *big.Rat { return big.NewRat(int64(i), 1) }
 	a, b, c, d, e, f := r(a00), r(a01), r(a10), r(a11), r(b0), r(b1)
-	m := new(big.Rat).Quo(c, a)
-	c.Sub(c, new(big.Rat).Mul(a, m))
-	d.Sub(d, new(big.Rat).Mul(b, m))
-	f.Sub(f, m.Mul(e, m)).Quo(f, d)
+	c.Quo(c, a)
+	d.Sub(d, new(big.Rat).Mul(b, c))
+	f.Sub(f, c.Mul(e, c)).Quo(f, d)
 	a.Quo(e.Sub(e, b.Mul(b, f)), a)
 	return a, f
 }
