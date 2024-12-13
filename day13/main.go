@@ -10,15 +10,13 @@ import (
 
 func solve2x2(a00, a01, a10, a11, b0, b1 uint64) (*big.Rat, *big.Rat) {
 	r := func(i uint64) *big.Rat { return big.NewRat(int64(i), 1) }
-	n := func() *big.Rat { return new(big.Rat) }
 	a, b, c, d, e, f := r(a00), r(a01), r(a10), r(a11), r(b0), r(b1)
-	m := n().Quo(c, a)
-	c.Sub(c, n().Mul(a, m))
-	d.Sub(d, n().Mul(b, m))
-	f.Sub(f, n().Mul(e, m))
-	y := n().Quo(f, d)
-	x := n().Quo(n().Sub(e, n().Mul(b, y)), a)
-	return x, y
+	m := new(big.Rat).Quo(c, a)
+	c.Sub(c, new(big.Rat).Mul(a, m))
+	d.Sub(d, new(big.Rat).Mul(b, m))
+	f.Sub(f, m.Mul(e, m)).Quo(f, d)
+	a.Quo(e.Sub(e, b.Mul(b, f)), a)
+	return a, f
 }
 
 func main() {
