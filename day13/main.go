@@ -8,14 +8,14 @@ import (
 	"strconv"
 )
 
-func solve2x2(a00, a01, a10, a11, b0, b1 uint64) (*big.Rat, *big.Rat) {
+func solve2x2(a00, a01, a10, a11, b0, b1 uint64) (uint64, uint64, bool) {
 	r := func(i uint64) *big.Rat { return big.NewRat(int64(i), 1) }
 	a, b, c, d, e, f := r(a00), r(a01), r(a10), r(a11), r(b0), r(b1)
 	c.Quo(c, a)
 	d.Sub(d, new(big.Rat).Mul(b, c))
 	f.Sub(f, c.Mul(e, c)).Quo(f, d)
 	a.Quo(e.Sub(e, b.Mul(b, f)), a)
-	return a, f
+	return a.Num().Uint64(), f.Num().Uint64(), a.IsInt() && f.IsInt()
 }
 
 func main() {
@@ -38,9 +38,9 @@ func main() {
 		priceLine := priceRegex.FindStringSubmatch(scanner.Text())
 		priceX, priceY := parseUint64(priceLine[1]), parseUint64(priceLine[2])
 		for i, add := 0, uint64(0); i < 2; i, add = i+1, uint64(10000000000000) {
-			x, y := solve2x2(aX, bX, aY, bY, priceX+add, priceY+add)
-			if x.Denom().Cmp(big.NewInt(1)) == 0 && y.Denom().Cmp(big.NewInt(1)) == 0 {
-				totalTokens[i] += 3*x.Num().Uint64() + y.Num().Uint64()
+			x, y, ok := solve2x2(aX, bX, aY, bY, priceX+add, priceY+add)
+			if ok {
+				totalTokens[i] += 3*x + y
 			}
 		}
 	}
