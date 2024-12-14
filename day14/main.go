@@ -2,9 +2,11 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"regexp"
 	"strconv"
+	"time"
 )
 
 const w, h = 101, 103
@@ -109,6 +111,9 @@ func input() []*robot {
 }
 
 func main() {
+	time1 := time.Now()
 	part1(input())
 	part2(input())
+	time2 := time.Now()
+	fmt.Printf("Execution time: %v\n", time2.Sub(time1))
 }
