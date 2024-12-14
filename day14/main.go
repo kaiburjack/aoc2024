@@ -41,11 +41,11 @@ func part1(robots []*robot) {
 	var quadrants [4]int
 	const seconds = 100
 	for _, r := range robots {
-		r.x, r.y = wrap(r.x+r.vx*seconds, r.y+r.vy*seconds)
-		if r.x == w>>1 || r.y == h>>1 {
+		rx, ry := wrap(r.x+r.vx*seconds, r.y+r.vy*seconds)
+		if rx == w>>1 || ry == h>>1 {
 			continue
 		}
-		quadrants[r.x/((w+1)>>1)+r.y/((h+1)>>1)<<1]++
+		quadrants[rx/((w+1)>>1)+ry/((h+1)>>1)<<1]++
 	}
 	safetyFactor := 1
 	for i := 0; i < 4; i++ {
@@ -111,9 +111,10 @@ func input() []*robot {
 }
 
 func main() {
+	in := input()
 	time1 := time.Now()
-	part1(input())
-	part2(input())
+	part1(in)
+	part2(in)
 	time2 := time.Now()
 	fmt.Printf("Execution time: %v\n", time2.Sub(time1))
 }
