@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"regexp"
@@ -10,6 +11,8 @@ import (
 )
 
 const w, h = 101, 103
+
+var sevenOnes = bytes.Repeat([]byte{1}, 7)
 
 type robot struct {
 	x, y, vx, vy int64
@@ -53,22 +56,13 @@ func part1(robots []*robot) {
 	println(safetyFactor)
 }
 
-func robotsInARow(robots []*robot, n int) bool {
-	var grid [h][w]bool
+func robotsInARow(robots []*robot) bool {
+	var grid [h][w]byte
 	for _, r := range robots {
-		grid[r.y][r.x] = true
+		grid[r.y][r.x] = 1
 	}
-	for y := 0; y < h-n; y++ {
-	inner:
-		for x := 0; x < w-n; x++ {
-			if !grid[y][x] {
-				continue
-			}
-			for i := 1; i < n; i++ {
-				if grid[y+i][x] != grid[y][x] {
-					continue inner
-				}
-			}
+	for y := 0; y < h; y++ {
+		if bytes.Contains(grid[y][:], sevenOnes) {
 			return true
 		}
 	}
@@ -82,7 +76,7 @@ func part2(robots []*robot) {
 			r.x, r.y = wrap(r.x+r.vx, r.y+r.vy)
 		}
 		numSeconds++
-		if robotsInARow(robots, 8) {
+		if robotsInARow(robots) {
 			break
 		}
 	}
