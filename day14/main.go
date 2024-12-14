@@ -41,19 +41,15 @@ func wrap(a, b int64) (int64, int64) {
 }
 
 func part1(robots []*robot) {
-	var quadrants [4]int
+	var qs [4]int
 	const seconds = 100
 	for _, r := range robots {
 		rx, ry := wrap(r.x+r.vx*seconds, r.y+r.vy*seconds)
 		if rx != w>>1 && ry != h>>1 {
-			quadrants[rx/((w+1)>>1)+ry/((h+1)>>1)<<1]++
+			qs[rx/((w+1)>>1)+ry/((h+1)>>1)<<1]++
 		}
 	}
-	safetyFactor := 1
-	for i := 0; i < 4; i++ {
-		safetyFactor *= quadrants[i]
-	}
-	println(safetyFactor)
+	println(qs[0] * qs[1] * qs[2] * qs[3])
 }
 
 func robotsInARow(robots []*robot) bool {
