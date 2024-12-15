@@ -69,24 +69,20 @@ func part1(grid [][]byte, rx, ry int, insns []byte) {
 func isPossiblePart2(grid [][]byte, x, y, dx, dy int, moves *[][2]int) bool {
 	nx, ny := x+dx, y+dy
 	at := grid[ny][nx]
-	if at == '#' {
-		return false
-	}
 	switch at {
+	case '#':
+		return false
 	case '.':
 		return true
-	case '[':
-		if dx == 1 && isPossiblePart2(grid, nx+1, ny, dx, dy, moves) ||
-			dx != 1 && isPossiblePart2(grid, nx, ny, dx, dy, moves) &&
-				isPossiblePart2(grid, nx+1, ny, dx, dy, moves) {
-			*moves = append(*moves, [2]int{nx, ny})
-			return true
+	default:
+		dnx := -1
+		if at == '[' {
+			dnx = 1
 		}
-	case ']':
-		if dx == -1 && isPossiblePart2(grid, nx-1, ny, dx, dy, moves) ||
-			dx != -1 && isPossiblePart2(grid, nx-1, ny, dx, dy, moves) &&
-				isPossiblePart2(grid, nx, ny, dx, dy, moves) {
-			*moves = append(*moves, [2]int{nx - 1, ny})
+		if dy == 0 && isPossiblePart2(grid, nx+dnx, ny, dx, dy, moves) ||
+			dy != 0 && isPossiblePart2(grid, nx, ny, dx, dy, moves) &&
+				isPossiblePart2(grid, nx+dnx, ny, dx, dy, moves) {
+			*moves = append(*moves, [2]int{nx + (dnx-1)>>1, ny})
 			return true
 		}
 	}
