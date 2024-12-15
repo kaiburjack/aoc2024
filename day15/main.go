@@ -90,9 +90,10 @@ func isPossiblePart2(grid [][]byte, x, y, dx, dy int, moves *[][2]int) bool {
 }
 
 func part2(grid [][]byte, rx, ry int, insns []byte) {
+	var moves [][2]int
 	for _, insn := range insns {
+		moves = moves[:0]
 		dx, dy := charToDxDy[insn][0], charToDxDy[insn][1]
-		var moves [][2]int
 		if isPossiblePart2(grid, rx, ry, dx, dy, &moves) {
 			for i := 0; i < len(moves); i++ {
 				x, y := moves[i][0], moves[i][1]
