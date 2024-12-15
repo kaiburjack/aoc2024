@@ -8,10 +8,7 @@ import (
 )
 
 func input() ([][]byte, int, int, []byte) {
-	file, err := os.Open("real.txt")
-	if err != nil {
-		panic(err)
-	}
+	file, _ := os.Open("real.txt")
 	scanner := bufio.NewScanner(file)
 	var grid [][]byte
 	rx, ry := 0, 0
@@ -68,11 +65,58 @@ func part1(grid [][]byte, rx, ry int, insns []byte) {
 	}
 }
 
+func isPossiblePart2(grid [][]byte, x, y, dx, dy int, moves *[][2]int) bool {
+	nx, ny := x+dx, y+dy
+	at := grid[ny][nx]
+	if at == '#' {
+		return false
+	}
+	switch at {
+	case '.':
+		return true
+	case '[':
+		if dx == 1 && isPossiblePart2(grid, nx+1, ny, dx, dy, moves) ||
+			dx != 1 && isPossiblePart2(grid, nx, ny, dx, dy, moves) &&
+				isPossiblePart2(grid, nx+1, ny, dx, dy, moves) {
+			*moves = append(*moves, [2]int{nx, ny})
+			return true
+		}
+	case ']':
+		if dx == -1 && isPossiblePart2(grid, nx-1, ny, dx, dy, moves) ||
+			dx != -1 && isPossiblePart2(grid, nx-1, ny, dx, dy, moves) &&
+				isPossiblePart2(grid, nx, ny, dx, dy, moves) {
+			*moves = append(*moves, [2]int{nx - 1, ny})
+			return true
+		}
+	}
+	return false
+}
+
+func part2(grid [][]byte, rx, ry int, insns []byte) [][]byte {
+	for _, insn := range insns {
+		dx, dy := charToDxDy[insn][0], charToDxDy[insn][1]
+		var moves [][2]int
+		if isPossiblePart2(grid, rx, ry, dx, dy, &moves) {
+			for i := 0; i < len(moves); i++ {
+				x, y := moves[i][0], moves[i][1]
+				grid[y][x], grid[y][x+1] = '.', '.'
+			}
+			for i := 0; i < len(moves); i++ {
+				x, y := moves[i][0], moves[i][1]
+				grid[y+dy][x+dx], grid[y+dy][x+dx+1] = '[', ']'
+			}
+			grid[ry][rx], grid[ry+dy][rx+dx] = '.', '@'
+			rx, ry = rx+dx, ry+dy
+		}
+	}
+	return grid
+}
+
 func sumOfGpsCoords(grid [][]byte) int64 {
 	var sum int64
 	for y, row := range grid {
 		for x, c := range row {
-			if c == 'O' {
+			if c == 'O' || c == '[' {
 				sum += int64(x) + 100*int64(y)
 			}
 		}
@@ -80,8 +124,32 @@ func sumOfGpsCoords(grid [][]byte) int64 {
 	return sum
 }
 
+func extendGrid(grid [][]byte) [][]byte {
+	biggerGrid := make([][]byte, len(grid))
+	for row := range grid {
+		biggerGrid[row] = make([]byte, 0, len(grid[row])<<1)
+		for _, c := range grid[row] {
+			switch c {
+			case '#':
+				biggerGrid[row] = append(biggerGrid[row], '#', '#')
+			case '.':
+				biggerGrid[row] = append(biggerGrid[row], '.', '.')
+			case 'O':
+				biggerGrid[row] = append(biggerGrid[row], '[', ']')
+			case '@':
+				biggerGrid[row] = append(biggerGrid[row], '@', '.')
+			default:
+			}
+		}
+	}
+	return biggerGrid
+}
+
 func main() {
 	grid, rx, ry, insns := input()
+	largerGrid := extendGrid(grid)
 	part1(grid, rx, ry, insns)
 	fmt.Printf("Part1: %d\n", sumOfGpsCoords(grid))
+	g := part2(largerGrid, rx<<1, ry, insns)
+	fmt.Printf("Part2: %d\n", sumOfGpsCoords(g))
 }
