@@ -95,12 +95,12 @@ func part2(grid [][]byte, rx, ry int, insns []byte) {
 		moves = moves[:0]
 		dx, dy := charToDxDy[insn][0], charToDxDy[insn][1]
 		if isPossiblePart2(grid, rx, ry, dx, dy, &moves) {
-			for i := 0; i < len(moves); i++ {
-				x, y := moves[i][0], moves[i][1]
+			for _, m := range moves {
+				x, y := m[0], m[1]
 				grid[y][x], grid[y][x+1] = '.', '.'
 			}
-			for i := 0; i < len(moves); i++ {
-				x, y := moves[i][0], moves[i][1]
+			for _, m := range moves {
+				x, y := m[0], m[1]
 				grid[y+dy][x+dx], grid[y+dy][x+dx+1] = '[', ']'
 			}
 			grid[ry][rx], grid[ry+dy][rx+dx] = '.', '@'
