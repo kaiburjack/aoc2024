@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
 
 func input() ([][]byte, int, int, []byte) {
@@ -148,8 +149,12 @@ func extendGrid(grid [][]byte) [][]byte {
 func main() {
 	grid, rx, ry, insns := input()
 	largerGrid := extendGrid(grid)
+	time0 := time.Now()
 	part1(grid, rx, ry, insns)
-	fmt.Printf("Part1: %d\n", sumOfGpsCoords(grid))
+	time1 := time.Now()
+	fmt.Printf("Part1: %d (in %v)\n", sumOfGpsCoords(grid), time1.Sub(time0))
+	time2 := time.Now()
 	g := part2(largerGrid, rx<<1, ry, insns)
-	fmt.Printf("Part2: %d\n", sumOfGpsCoords(g))
+	time3 := time.Now()
+	fmt.Printf("Part2: %d (in %v)\n", sumOfGpsCoords(g), time3.Sub(time2))
 }
