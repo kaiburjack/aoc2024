@@ -93,7 +93,7 @@ func isPossiblePart2(grid [][]byte, x, y, dx, dy int, moves *[][2]int) bool {
 	return false
 }
 
-func part2(grid [][]byte, rx, ry int, insns []byte) [][]byte {
+func part2(grid [][]byte, rx, ry int, insns []byte) {
 	for _, insn := range insns {
 		dx, dy := charToDxDy[insn][0], charToDxDy[insn][1]
 		var moves [][2]int
@@ -110,7 +110,6 @@ func part2(grid [][]byte, rx, ry int, insns []byte) [][]byte {
 			rx, ry = rx+dx, ry+dy
 		}
 	}
-	return grid
 }
 
 func sumOfGpsCoords(grid [][]byte) int64 {
@@ -139,7 +138,6 @@ func extendGrid(grid [][]byte) [][]byte {
 				biggerGrid[row] = append(biggerGrid[row], '[', ']')
 			case '@':
 				biggerGrid[row] = append(biggerGrid[row], '@', '.')
-			default:
 			}
 		}
 	}
@@ -154,7 +152,7 @@ func main() {
 	time1 := time.Now()
 	fmt.Printf("Part1: %d (in %v)\n", sumOfGpsCoords(grid), time1.Sub(time0))
 	time2 := time.Now()
-	g := part2(largerGrid, rx<<1, ry, insns)
+	part2(largerGrid, rx<<1, ry, insns)
 	time3 := time.Now()
-	fmt.Printf("Part2: %d (in %v)\n", sumOfGpsCoords(g), time3.Sub(time2))
+	fmt.Printf("Part2: %d (in %v)\n", sumOfGpsCoords(largerGrid), time3.Sub(time2))
 }
