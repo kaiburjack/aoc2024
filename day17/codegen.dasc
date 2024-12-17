@@ -1,0 +1,89 @@
+#include <stdio.h>
+
+#include "dynasm/dasm_proto.h"
+#include "dynasm/dasm_x86.h"
+#include "codegen.h"
+
+|.arch x64
+|.section code
+|.globals GLOB_
+|.actionlist actionlist
+
+void encodeCombo(dasm_State** Dst, char operand) {
+  if (operand >= '0' && operand <= '3') {
+    | mov cl, operand-'0'
+  } else if (operand == '4') {
+    | mov rcx, r8
+  } else if (operand == '5') {
+    | mov rcx, r9
+  } else if (operand == '6') {
+    | mov rcx, r10
+  } else {
+    // throw error
+    exit(2);
+  }
+}
+
+// https://learn.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-170#calling-convention-defaults
+//   integer args: RCX, RDX, R8, and R9
+void* codegen(const unsigned char* opcodes, int opcodesLength, callbackFunctions* callbacks, size_t* codeSize) {
+  dasm_State* state;
+  dasm_State** Dst = &state;
+  dasm_init(&state, DASM_MAXSECTION);
+  dasm_setup(&state, actionlist);
+  dasm_growpc(&state, opcodesLength);
+  | mov r11, r9 // <- output list
+  | mov r10, r8 // <- C register
+  | mov r8, rcx // <- A register
+  | mov r9, rdx // <- B register
+  for (int i = 0; i < opcodesLength; i += 2) {
+    |=>i/2:
+    char opcode = opcodes[i];
+    char operand = opcodes[i + 1];
+    switch (opcode) {
+    case '0': // adv
+      encodeCombo(Dst, operand);
+      | shr r8, cl
+      break;
+    case '1': // bxl
+      | xor r9, (operand-'0')
+      break;
+    case '2': // bst
+      encodeCombo(Dst, operand);
+      | and rcx, 7
+      | mov r9, rcx
+      break;
+    case '3': // jnz
+      | and r8, r8
+      | jnz =>operand-'0'
+      break;
+    case '4': // bxc
+      | xor r9, r10
+      break;
+    case '5': // out
+      encodeCombo(Dst, operand);
+      | and cl, 7
+      | mov [r11], cl
+      | inc r11
+      break;
+    case '6': // bdv
+      encodeCombo(Dst, operand);
+      | mov r9, r8
+      | shr r9, cl
+      break;
+    case '7': // cdv
+      encodeCombo(Dst, operand);
+      | mov r10, r8
+      | shr r10, cl
+      break;
+    }
+  }
+  |=>opcodesLength/2:
+  | mov rax, r11
+  | ret
+  int status = dasm_link(&state, codeSize);
+  void* code = callbacks->alloc(*codeSize);
+  status = dasm_encode(&state, code);
+  dasm_free(&state);
+  return code;
+}
