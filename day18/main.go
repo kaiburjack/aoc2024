@@ -20,7 +20,7 @@ type node struct {
 	end, seen bool
 }
 
-func isWalkable(x, y int, grid [ey + 1][ex + 1]byte) bool {
+func isWalkable(x, y int, grid *[ey + 1][ex + 1]byte) bool {
 	return x >= 0 && y >= 0 && y <= ey && x <= ex && grid[y][x] != '#'
 }
 
@@ -31,16 +31,16 @@ const ey = 70
 
 const maxuint = ^uint(0)
 
-func buildGraph(cx, cy int, grid [ey + 1][ex + 1]byte, seen map[coord]*node) *node {
+func buildGraph(cx, cy int, grid *[ey + 1][ex + 1]byte, seen map[coord]*node) *node {
 	if v, ok := seen[coord{cx, cy}]; ok {
 		return v
 	}
 	n := &node{dcost: maxuint}
+	seen[coord{cx, cy}] = n
 	if cx == ex && cy == ey {
 		n.end = true
 		return n
 	}
-	seen[coord{cx, cy}] = n
 	for i := 0; i < 4; i++ {
 		nx, ny := cx+d2dd[i][0], cy+d2dd[i][1]
 		if !isWalkable(nx, ny, grid) {
@@ -79,31 +79,15 @@ func input(n int) ([ey + 1][ex + 1]byte, int, int) {
 	file, _ := os.Open("real.txt")
 	scanner := bufio.NewScanner(file)
 	var grid [ey + 1][ex + 1]byte
-	// fill grid with dots
-	for y := range grid {
-		for x := range grid[y] {
-			grid[y][x] = '.'
-		}
-	}
 	bx, by := 0, 0
 	for i := 0; i < n && scanner.Scan(); i++ {
-		row := scanner.Text()
-		splitted := strings.Split(row, ",")
+		splitted := strings.Split(scanner.Text(), ",")
 		leftAsInt, _ := strconv.Atoi(splitted[0])
 		rightAsInt, _ := strconv.Atoi(splitted[1])
 		grid[rightAsInt][leftAsInt] = '#'
 		bx, by = leftAsInt, rightAsInt
 	}
 	return grid, bx, by
-}
-
-func printGrid(grid [ey + 1][ex + 1]byte) {
-	for y := range grid {
-		for x := range grid[y] {
-			fmt.Printf("%c", grid[y][x])
-		}
-		fmt.Println()
-	}
 }
 
 func dijkstra(start *node) uint {
@@ -116,10 +100,7 @@ func dijkstra(start *node) uint {
 			return n.dcost
 		}
 		for _, neighbor := range n.neighbors {
-			if neighbor == nil {
-				continue
-			}
-			if neighbor.seen {
+			if neighbor == nil || neighbor.seen {
 				continue
 			}
 			neighbor.seen = true
@@ -139,7 +120,7 @@ func main() {
 		grid, _, _ := input(1024)
 		seen := make(map[coord]*node)
 		time1 := time.Now()
-		start := buildGraph(0, 0, grid, seen)
+		start := buildGraph(0, 0, &grid, seen)
 		dcost := dijkstra(start)
 		time2 := time.Now()
 		fmt.Printf("Start: %v\n", start)
@@ -152,10 +133,10 @@ func main() {
 		for i := 1025; i < 1000000; i++ {
 			grid, bx, by := input(i)
 			seen := make(map[coord]*node)
-			start := buildGraph(0, 0, grid, seen)
+			start := buildGraph(0, 0, &grid, seen)
 			dcost := dijkstra(start)
 			if dcost == maxuint {
-				fmt.Printf("Part 2: %d, %d\n", bx, by)
+				fmt.Printf("Part 2: %d,%d\n", bx, by)
 				break
 			}
 		}
