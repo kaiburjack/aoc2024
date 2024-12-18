@@ -26,6 +26,11 @@ void encodeCombo(dasm_State** Dst, char operand) {
 
 // https://learn.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-170#calling-convention-defaults
 //   integer args: RCX, RDX, R8, and R9
+// we will use:
+// - RCX as register A
+// - RDX as register B
+// - R8 as register C
+// - R9 as the pointer to the output list
 void* codegen(const unsigned char* opcodes, int opcodesLength, callbackFunctions* callbacks, size_t* codeSize) {
   dasm_State* state;
   dasm_State** Dst = &state;
@@ -37,50 +42,126 @@ void* codegen(const unsigned char* opcodes, int opcodesLength, callbackFunctions
   | mov r8, rcx // <- A register
   | mov r9, rdx // <- B register
   for (int i = 0; i < opcodesLength; i += 2) {
-    |=>i/2:
+    |=>i>>1: // label for this operation to jump to
     char opcode = opcodes[i];
     char operand = opcodes[i + 1];
     switch (opcode) {
     case '0': // adv
       encodeCombo(Dst, operand);
-      | shr r8, cl
+      | shr r8, cl // shift right A by combo operand
       break;
     case '1': // bxl
-      | xor r9, (operand-'0')
+      | xor r9, (operand-'0') // xor B and literal operand and store in B
       break;
     case '2': // bst
       encodeCombo(Dst, operand);
-      | and rcx, 7
-      | mov r9, rcx
+      | and rcx, 7  // mask out the high bits
+      | mov r9, rcx // copy to B
       break;
     case '3': // jnz
-      | and r8, r8
-      | jnz =>operand-'0'
+      | test r8, r8       // test if A is zero
+      | jnz =>operand-'0' // if not, jump to the operation label indexed by the operand
       break;
     case '4': // bxc
-      | xor r9, r10
+      | xor r9, r10 // xor B and C and store in B
       break;
     case '5': // out
       encodeCombo(Dst, operand);
-      | and cl, 7
-      | mov [r11], cl
-      | inc r11
+      | and cl, 7     // mask out the high bits
+      | mov [r11], cl // store the output in the output list
+      | inc r11       // increment the output pointer
       break;
     case '6': // bdv
       encodeCombo(Dst, operand);
-      | mov r9, r8
-      | shr r9, cl
+      | mov r9, r8 // copy A to B
+      | shr r9, cl // shift right B by combo operand
       break;
     case '7': // cdv
       encodeCombo(Dst, operand);
-      | mov r10, r8
-      | shr r10, cl
+      | mov r10, r8 // copy A to C
+      | shr r10, cl // shift right C by combo operand
       break;
     }
   }
-  |=>opcodesLength/2:
-  | mov rax, r11
-  | ret
+  | mov rax, r11 // return the output pointer
+  | ret          //
+  int status = dasm_link(&state, codeSize);
+  void* code = callbacks->alloc(*codeSize);
+  status = dasm_encode(&state, code);
+  dasm_free(&state);
+  return code;
+}
+
+// https://learn.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-170#calling-convention-defaults
+//   integer args: RCX, RDX, R8, and R9
+// we will use:
+// - RCX as the pointer to the expected output list
+// - RDX as the end pointer of the expected output list
+// - R8 as the A register (the register for which we will try all possible values)
+void* codegen2(const unsigned char* opcodes, int opcodesLength, callbackFunctions* callbacks, size_t* codeSize) {
+  dasm_State* state;
+  dasm_State** Dst = &state;
+  dasm_init(&state, DASM_MAXSECTION);
+  void* global_labels[GLOB__MAX];
+  dasm_setupglobal(&state, global_labels, GLOB__MAX);
+  dasm_setup(&state, actionlist);
+  dasm_growpc(&state, opcodesLength);
+  // a register is in r8
+  // end of output is in rdx
+  | mov r11, rcx // <- output list
+  | xor r9, r9 // <- B register
+  | xor r10, r10 // <- C register
+  for (int i = 0; i < opcodesLength; i += 2) {
+    |=>i>>1:
+    char opcode = opcodes[i];
+    char operand = opcodes[i + 1];
+    switch (opcode) {
+    case '0': // adv
+      encodeCombo(Dst, operand);
+      | shr r8, cl // shift right A by combo operand
+      break;
+    case '1': // bxl
+      | xor r9, (operand-'0') // xor B and literal operand and store in B
+      break;
+    case '2': // bst
+      encodeCombo(Dst, operand);
+      | and rcx, 7  // mask out the high bits
+      | mov r9, rcx // copy to B
+      break;
+    case '3': // jnz
+      | test r8, r8       // test if A is zero
+      | jnz =>operand-'0' // if not, jump to the operation label indexed by the operand
+      break;
+    case '4': // bxc
+      | xor r9, r10 // xor B and C
+      break;
+    case '5': // out
+      encodeCombo(Dst, operand);
+      | and cl, 7     // mask out the high bits
+      | add cl, '0'   // convert to ASCII character
+      | cmp [r11], cl // check if the output is correct
+      | jne ->fail    // if not, goto fail to return 0
+      | inc r11       // else, increment the output pointer
+      break;
+    case '6': // bdv
+      encodeCombo(Dst, operand);
+      | mov r9, r8 // copy A to B
+      | shr r9, cl // shift right B by combo operand
+      break;
+    case '7': // cdv
+      encodeCombo(Dst, operand);
+      | mov r10, r8 // copy A to C
+      | shr r10, cl // shift right C by combo operand
+      break;
+    }
+  }
+  | cmp r11, rdx // check if the output pointer is at the end
+  | jne ->fail   // if not, goto fail to return 0
+  | mov rax, 1   // else, return 1
+  | ret          //
+  |->fail:
+  | mov rax, 0 // return 0
+  | ret        //
   int status = dasm_link(&state, codeSize);
   void* code = callbacks->alloc(*codeSize);
   status = dasm_encode(&state, code);
