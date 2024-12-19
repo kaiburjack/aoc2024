@@ -9,8 +9,16 @@ import (
 )
 
 type node struct {
-	next     [256]*node
+	next     [5]*node
 	terminal bool
+}
+
+var c2i = [256]int{
+	'w': 0,
+	'u': 1,
+	'b': 2,
+	'r': 3,
+	'g': 4,
 }
 
 func buildPrefixTree(towels []string) *node {
@@ -18,10 +26,10 @@ func buildPrefixTree(towels []string) *node {
 	for _, towel := range towels {
 		c := root
 		for i := 0; i < len(towel); i++ {
-			if c.next[towel[i]] == nil {
-				c.next[towel[i]] = &node{}
+			if c.next[c2i[towel[i]]] == nil {
+				c.next[c2i[towel[i]]] = &node{}
 			}
-			c = c.next[towel[i]]
+			c = c.next[c2i[towel[i]]]
 		}
 		c.terminal = true
 	}
@@ -38,7 +46,7 @@ func checkDesign(design string, root *node, cache map[string]uint64) uint64 {
 	c := root
 	numPossible := uint64(0)
 	for i := 0; i < len(design); i++ {
-		c = c.next[design[i]]
+		c = c.next[c2i[design[i]]]
 		if c == nil {
 			break
 		}
